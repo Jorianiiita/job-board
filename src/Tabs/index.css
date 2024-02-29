@@ -1,0 +1,46 @@
+.tabs-container {
+  max-width: 500px;
+  padding: 20px;
+}
+
+.trigger-list {
+  display: flex;
+  border: 1px solid black;
+}
+
+.trigger {
+  text-decoration: none;
+  background-color: white;
+  border: none;
+  padding: 10px 20px;
+  flex-grow: 1;
+}
+
+.trigger.active {
+  color: red;
+  background-color: lightgray;
+  font-weight: bold;
+}
+
+.content-container {
+  display: flex;
+}
+
+.content {
+  display: none;
+}
+
+.content.active {
+  display: block;
+}
+
+
+/* Vertical Tabs */
+
+.vertical-container {
+  display: flex;
+}
+
+.vertical-tabs {
+  flex-direction: column;
+}
