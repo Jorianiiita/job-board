@@ -1,0 +1,19 @@
+.task-app {
+  padding: 0 20px;
+}
+
+form {
+  display: flex;
+  gap: 10px;
+  flex-direction: column;
+  max-width: 300px;
+}
+
+.input-group {
+  display: flex;
+  align-items: center;
+}
+
+.input-group label {
+  width: 100px;
+}

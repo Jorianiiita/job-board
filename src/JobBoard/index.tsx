@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './index.css';
+import { getjobs, getjobdetails } from './apiUtil';
 
 type JobCardProps = {
   id: number;
@@ -41,9 +42,7 @@ function JobBoard() {
   async function fetchJobIds(currentPage: number) {
     let jobs = jobIds;
     if (!jobs.length) {
-      const res = await fetch(
-        'https://hacker-news.firebaseio.com/v0/jobstories.json',
-      );
+      const res = await getjobs();
       jobs = await res.json();
       setJobIds(jobs);
     }
@@ -56,11 +55,7 @@ function JobBoard() {
   const loadJobDetails = async () => {
     setLoading(true);
     const jobIds = await fetchJobIds(page);
-    const jobDetailsPromises = jobIds.map((jobId) =>
-      fetch(`https://hacker-news.firebaseio.com/v0/item/${jobId}.json`).then(
-        (res) => res.json(),
-      ),
-    );
+    const jobDetailsPromises = jobIds.map((jobId) => getjobdetails(jobId));
     const results = await Promise.all(jobDetailsPromises);
     setJobDetailsList([...jobDetailsList, ...results]);
     setLoading(false);
