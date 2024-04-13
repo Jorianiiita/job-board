@@ -1,5 +1,15 @@
-import { fireEvent, render, waitFor, act } from '@testing-library/react';
-import JobBoard from './../index';
+import {
+  fireEvent,
+  render,
+  waitFor,
+  act,
+  screen,
+  logRoles,
+  waitForElementToBeRemoved,
+} from '@testing-library/react';
+import JobBoard from '../index';
+import userEvent from '@testing-library/user-event';
+import exp from 'constants';
 
 describe('Job Board App', () => {
   const mockJobIds = [
@@ -18,7 +28,7 @@ describe('Job Board App', () => {
     url: 'https://www.tesorio.com/careers#job-openings',
   };
 
-  // jest.mock('../apiUtil', () => ({
+  // jest.mock('./../apiUtil', () => ({
   //   getjobs: jest.fn(() => mockJobIds), // Provide a mock implementation for the function
   //   getjobdetails: jest.fn(() => mockJobDetails),
   // }));
@@ -28,28 +38,23 @@ describe('Job Board App', () => {
   });
 
   it('fetch data and lists 6 job posting', async () => {
-    let { getByText, queryAllByText } = render(<JobBoard />);
-    expect(getByText(/Hacker News/i)).toBeInTheDocument();
+    render(<JobBoard />);
+    expect(screen.getByText(/Hacker News/i)).toBeInTheDocument();
+    expect(screen.getByText(/Loading Job board/i)).toBeInTheDocument();
 
-    // shows loading message
-    expect(getByText('Loading...')).toBeInTheDocument();
-    await waitFor(() => {
-      expect(queryAllByText(/Tesorio/i)).toBeTruthy();
-      expect(getByText('Load more jobs')).toBeInTheDocument();
-    });
-    let button = getByText('Load more jobs');
-    expect(button).not.toHaveAttribute('disabled');
+    let button = await screen.findByRole('button'); // findBy included waitFor internally
+    expect(screen.queryByText(/Loading Job board/i)).not.toBeInTheDocument();
+    expect(button).not.toBeDisabled();
+    expect(screen.queryAllByText(/Tesorio/i)).toBeTruthy();
     expect(button).toHaveTextContent('Load more jobs');
-    await act(() => {
-      fireEvent.click(button);
-    });
-    expect(button).toHaveAttribute('disabled');
-    expect(button).toHaveTextContent('Loading...');
+    await act(() => userEvent.click(button));
+    expect(button).toBeDisabled();
+    expect(button).toHaveTextContent('Loading Jobs...');
+
     await waitFor(() => {
       // Need to use 1 of of below 2 code lines to wait which intend
       // to wait for button coming back to non loading state
-      expect(button).not.toHaveAttribute('disabled');
-      expect(getByText('Load more jobs')).toBeInTheDocument();
+      expect(button).not.toBeDisabled();
     });
     expect(button).toHaveTextContent('Load more jobs');
   });

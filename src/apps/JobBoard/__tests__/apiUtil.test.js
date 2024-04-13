@@ -1,4 +1,4 @@
-import { getjobdetails } from './../apiUtil';
+import { getjobdetails } from '../apiUtil';
 
 global.fetch = jest.fn();
 
