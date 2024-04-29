@@ -1,19 +1,30 @@
 import './styles.css';
-import React, { useId, useState } from 'react';
+import React, { forwardRef, useEffect, useId, useRef, useState } from 'react';
 
-function Checkbox({ checked, onChange, label }) {
+// Checkbox component
+const Checkbox = forwardRef(function Checkbox(
+  { checked, onChange, label },
+  ref,
+) {
   const id = useId();
   return (
     <div>
-      <input id={id} type="checkbox" checked={checked} onChange={onChange} />
+      <input
+        ref={ref}
+        id={id}
+        type="checkbox"
+        checked={checked}
+        onChange={onChange}
+      />
       <label htmlFor={id}>{label}</label>
     </div>
   );
-}
+});
 
-function ItemsList({ list, onChange }) {
+// ItemsList component
+function ItemsList({ list, onChange, name }) {
   return (
-    <div className="items">
+    <div className="items" data-testid={`${name}-items`}>
       <ul>
         {Array.from(list.entries()).map(([label, checked], index) => (
           <li key={label}>
@@ -33,23 +44,20 @@ function ItemsList({ list, onChange }) {
   );
 }
 
-const DEFAULT_ITEMS_LEFT = ['HTML', 'JavaScript', 'CSS', 'TypeScript'];
-const DEFAULT_ITEMS_RIGHT = ['React', 'Angular', 'Vue', 'Svelte'];
-
+// Helper functions
 function generateItemsMap(items) {
   return new Map(items.map((item) => [item, false]));
 }
 
-function transferAllItems(itemsFrom, itemsTo, setItemsFrom, setItemsTo) {
+function transferAllItems(itemsFrom, itemsTo) {
   const newItemsTo = new Map(itemsTo);
   itemsFrom.forEach((value, key) => {
     newItemsTo.set(key, value);
   });
-  setItemsTo(newItemsTo);
-  setItemsFrom(new Map());
+  return newItemsTo;
 }
 
-function transferSelectedItems(itemsFrom, itemsTo, setItemsFrom, setItemsTo) {
+function transferSelectedItems(itemsFrom, itemsTo) {
   const newItemsTo = new Map(itemsTo);
   const newItemsFrom = new Map(itemsFrom);
 
@@ -60,41 +68,142 @@ function transferSelectedItems(itemsFrom, itemsTo, setItemsFrom, setItemsTo) {
     }
   });
 
-  setItemsTo(newItemsTo);
-  setItemsFrom(newItemsFrom);
+  return { newItemsTo, newItemsFrom };
+}
+
+function selectAllItemsInAList(list) {
+  const newMap = new Map(list);
+  const allItemCheckedValue = allItemChecked(list);
+  list.forEach((value, key) => {
+    newMap.set(key, !allItemCheckedValue);
+  });
+  return newMap;
 }
 
 function anyItemChecked(items) {
   return Array.from(items.values()).some((value) => value);
 }
 
+function allItemChecked(items) {
+  return Array.from(items.values()).every((value) => value);
+}
+
+function addItemInTheList(list, item) {
+  const newList = new Map(list);
+  newList.set(item, false);
+  return newList;
+}
+
+// Exported components and functions
+export const ItemsColumn = ({ name, list, setList }) => {
+  const countOfSelectedItems = Array.from(list).reduce((acc, [key, value]) => {
+    if (value) {
+      acc++;
+    }
+    return acc;
+  }, 0);
+  const ref = useRef();
+  const id = useId();
+  const [newItem, setNewItem] = useState('');
+
+  useEffect(() => {
+    if (ref.current)
+      ref.current.indeterminate =
+        countOfSelectedItems > 0 && countOfSelectedItems !== list.size;
+  }, [list]);
+
+  const handleAddItem = (e) => {
+    e.preventDefault();
+    const newItemValue = newItem.trim();
+    if (newItemValue === '') {
+      return;
+    }
+    const newList = addItemInTheList(list, newItemValue);
+    setList(newList);
+    setNewItem('');
+  };
+
+  const handleSelectAllItems = () => {
+    const newList = selectAllItemsInAList(list);
+    setList(newList);
+  };
+
+  return (
+    <div className={`${name} coloum`} data-testid="items-column">
+      <form aria-label="input-form" onSubmit={handleAddItem}>
+        <input
+          type="text"
+          placeholder="Add new Item"
+          aria-label="add new Item in the list"
+          name={`${name}-input`}
+          value={newItem}
+          onChange={(e) => {
+            setNewItem(e.target.value);
+          }}
+        />
+      </form>
+      <hr></hr>
+      <Checkbox
+        ref={ref}
+        label={`${countOfSelectedItems} / ${list.size} Selected`}
+        checked={list.size > 0 && countOfSelectedItems === list.size}
+        onChange={handleSelectAllItems}
+      />
+      <hr></hr>
+      <ItemsList list={list} onChange={setList} name={name} />
+    </div>
+  );
+};
+
+export function transferItems(itemsFrom, itemsTo, setItemsFrom, setItemsTo) {
+  const { newItemsTo, newItemsFrom } = transferSelectedItems(
+    itemsFrom,
+    itemsTo,
+  );
+  setItemsTo(newItemsTo);
+  setItemsFrom(newItemsFrom);
+}
+
 export default function TransferList() {
   const [leftList, setLeftList] = useState(
-    generateItemsMap(DEFAULT_ITEMS_LEFT),
+    generateItemsMap(['HTML', 'JavaScript', 'CSS', 'TypeScript']),
   );
   const [rightList, setRightList] = useState(
-    generateItemsMap(DEFAULT_ITEMS_RIGHT),
+    generateItemsMap(['React', 'Angular', 'Vue', 'Svelte']),
   );
+
+  const handleTransferAllItems = () => {
+    const newLeftList = transferAllItems(rightList, leftList);
+    setLeftList(newLeftList);
+    setRightList(new Map());
+  };
+
+  const handleTransferSelectedItems = (
+    fromList,
+    toList,
+    setFromList,
+    setToList,
+  ) => {
+    transferItems(fromList, toList, setFromList, setToList);
+  };
 
   return (
     <>
       <div className="container">
-        <ItemsList list={leftList} onChange={setLeftList} />
+        <ItemsColumn name="left" list={leftList} setList={setLeftList} />
         <div className="actions">
           <button
-            aria-label="Trasfer all items to the left list"
+            aria-label="Transfer all items to the left list"
             disabled={rightList.size === 0}
-            onClick={() => {
-              transferAllItems(rightList, leftList, setRightList, setLeftList);
-            }}
+            onClick={handleTransferAllItems}
           >
-            &lt;&lt;
+            <span aria-hidden={true}>&lt;&lt;</span>
           </button>
           <button
-            aria-label="Trasfer selected items to the left list"
+            aria-label="Transfer selected items to the left list"
             disabled={!anyItemChecked(rightList)}
             onClick={() => {
-              transferSelectedItems(
+              handleTransferSelectedItems(
                 rightList,
                 leftList,
                 setRightList,
@@ -102,13 +211,13 @@ export default function TransferList() {
               );
             }}
           >
-            &lt;
+            <span aria-hidden={true}>&lt;</span>
           </button>
           <button
-            aria-label="Trasfer selected items to the right list"
+            aria-label="Transfer selected items to the right list"
             disabled={!anyItemChecked(leftList)}
             onClick={() => {
-              transferSelectedItems(
+              handleTransferSelectedItems(
                 leftList,
                 rightList,
                 setLeftList,
@@ -116,19 +225,21 @@ export default function TransferList() {
               );
             }}
           >
-            &gt;
+            <span aria-hidden={true}>&gt;</span>
           </button>
           <button
-            aria-label="Trasfer all items to the right list"
+            aria-label="Transfer all items to the right list"
             disabled={leftList.size === 0}
             onClick={() => {
-              transferAllItems(leftList, rightList, setLeftList, setRightList);
+              const newRightList = transferAllItems(leftList, rightList);
+              setRightList(newRightList);
+              setLeftList(new Map());
             }}
           >
-            &gt;&gt;
+            <span aria-hidden={true}>&gt;&gt;</span>
           </button>
         </div>
-        <ItemsList list={rightList} onChange={setRightList} />
+        <ItemsColumn name="right" list={rightList} setList={setRightList} />
       </div>
     </>
   );
