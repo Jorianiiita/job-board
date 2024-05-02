@@ -1,0 +1,69 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ItemsColumn Component should match the snapshot 1`] = `
+<div>
+  <div
+    class="Test Column coloum"
+    data-testid="items-column"
+  >
+    <form
+      aria-label="input-form"
+    >
+      <input
+        aria-label="add new Item in the list"
+        name="Test Column-input"
+        placeholder="Add new Item"
+        type="text"
+        value=""
+      />
+    </form>
+    <hr />
+    <div>
+      <input
+        id="r:id"
+        type="checkbox"
+      />
+      <label
+        for="r:id"
+      >
+        1 / 2 Selected
+      </label>
+    </div>
+    <hr />
+    <div
+      class="items"
+      data-testid="Test Column-items"
+    >
+      <ul>
+        <li>
+          <div>
+            <input
+              id="r:id"
+              type="checkbox"
+            />
+            <label
+              for="r:id"
+            >
+              item1
+            </label>
+          </div>
+        </li>
+        <li>
+          <div>
+            <input
+              checked=""
+              id="r:id"
+              type="checkbox"
+            />
+            <label
+              for="r:id"
+            >
+              item2
+            </label>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+`;

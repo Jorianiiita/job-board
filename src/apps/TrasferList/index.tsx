@@ -1,10 +1,22 @@
 import './styles.css';
-import React, { forwardRef, useEffect, useId, useRef, useState } from 'react';
+import React, {
+  ForwardedRef,
+  forwardRef,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+} from 'react';
 
 // Checkbox component
+type CheckboxProps = {
+  checked: boolean;
+  onChange: React.EventHandler<React.ChangeEvent<HTMLInputElement>>;
+  label: string;
+};
 const Checkbox = forwardRef(function Checkbox(
-  { checked, onChange, label },
-  ref,
+  { checked, onChange, label }: CheckboxProps,
+  ref: ForwardedRef<HTMLInputElement>,
 ) {
   const id = useId();
   return (
@@ -22,7 +34,12 @@ const Checkbox = forwardRef(function Checkbox(
 });
 
 // ItemsList component
-function ItemsList({ list, onChange, name }) {
+type ItemsListProp = {
+  list: Map<string, boolean>;
+  onChange: React.Dispatch<React.SetStateAction<Map<string, boolean>>>;
+  name: string;
+};
+function ItemsList({ list, onChange, name }: ItemsListProp) {
   return (
     <div className="items" data-testid={`${name}-items`}>
       <ul>
@@ -45,11 +62,14 @@ function ItemsList({ list, onChange, name }) {
 }
 
 // Helper functions
-function generateItemsMap(items) {
+function generateItemsMap(items: string[]) {
   return new Map(items.map((item) => [item, false]));
 }
 
-function transferAllItems(itemsFrom, itemsTo) {
+function transferAllItems(
+  itemsFrom: Map<string, boolean>,
+  itemsTo: Map<string, boolean>,
+) {
   const newItemsTo = new Map(itemsTo);
   itemsFrom.forEach((value, key) => {
     newItemsTo.set(key, value);
@@ -57,7 +77,10 @@ function transferAllItems(itemsFrom, itemsTo) {
   return newItemsTo;
 }
 
-function transferSelectedItems(itemsFrom, itemsTo) {
+function transferSelectedItems(
+  itemsFrom: Map<string, boolean>,
+  itemsTo: Map<string, boolean>,
+) {
   const newItemsTo = new Map(itemsTo);
   const newItemsFrom = new Map(itemsFrom);
 
@@ -71,7 +94,7 @@ function transferSelectedItems(itemsFrom, itemsTo) {
   return { newItemsTo, newItemsFrom };
 }
 
-function selectAllItemsInAList(list) {
+function selectAllItemsInAList(list: Map<string, boolean>) {
   const newMap = new Map(list);
   const allItemCheckedValue = allItemChecked(list);
   list.forEach((value, key) => {
@@ -80,30 +103,34 @@ function selectAllItemsInAList(list) {
   return newMap;
 }
 
-function anyItemChecked(items) {
+function anyItemChecked(items: Map<string, boolean>) {
   return Array.from(items.values()).some((value) => value);
 }
 
-function allItemChecked(items) {
+function allItemChecked(items: Map<string, boolean>) {
   return Array.from(items.values()).every((value) => value);
 }
 
-function addItemInTheList(list, item) {
+function addItemInTheList(list: Map<string, boolean>, item: string) {
   const newList = new Map(list);
   newList.set(item, false);
   return newList;
 }
 
 // Exported components and functions
-export const ItemsColumn = ({ name, list, setList }) => {
+type ItemsColumnProp = {
+  name: string;
+  list: Map<string, boolean>;
+  setList: React.Dispatch<React.SetStateAction<Map<string, boolean>>>;
+};
+export const ItemsColumn = ({ name, list, setList }: ItemsColumnProp) => {
   const countOfSelectedItems = Array.from(list).reduce((acc, [key, value]) => {
     if (value) {
       acc++;
     }
     return acc;
   }, 0);
-  const ref = useRef();
-  const id = useId();
+  const ref = useRef<HTMLInputElement | null>(null);
   const [newItem, setNewItem] = useState('');
 
   useEffect(() => {
@@ -112,7 +139,7 @@ export const ItemsColumn = ({ name, list, setList }) => {
         countOfSelectedItems > 0 && countOfSelectedItems !== list.size;
   }, [list]);
 
-  const handleAddItem = (e) => {
+  const handleAddItem = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     const newItemValue = newItem.trim();
     if (newItemValue === '') {
@@ -155,15 +182,6 @@ export const ItemsColumn = ({ name, list, setList }) => {
   );
 };
 
-export function transferItems(itemsFrom, itemsTo, setItemsFrom, setItemsTo) {
-  const { newItemsTo, newItemsFrom } = transferSelectedItems(
-    itemsFrom,
-    itemsTo,
-  );
-  setItemsTo(newItemsTo);
-  setItemsFrom(newItemsFrom);
-}
-
 export default function TransferList() {
   const [leftList, setLeftList] = useState(
     generateItemsMap(['HTML', 'JavaScript', 'CSS', 'TypeScript']),
@@ -179,12 +197,17 @@ export default function TransferList() {
   };
 
   const handleTransferSelectedItems = (
-    fromList,
-    toList,
-    setFromList,
-    setToList,
+    fromList: Map<string, boolean>,
+    toList: Map<string, boolean>,
+    setFromList: React.Dispatch<React.SetStateAction<Map<string, boolean>>>,
+    setToList: React.Dispatch<React.SetStateAction<Map<string, boolean>>>,
   ) => {
-    transferItems(fromList, toList, setFromList, setToList);
+    const { newItemsTo, newItemsFrom } = transferSelectedItems(
+      fromList,
+      toList,
+    );
+    setToList(newItemsTo);
+    setFromList(newItemsFrom);
   };
 
   return (

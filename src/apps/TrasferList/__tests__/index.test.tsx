@@ -31,7 +31,7 @@ describe('Transfer List', () => {
       expect(screen.getByText('1 / 2 Selected')).toBeInTheDocument();
     });
 
-    it('adds new item to the list', () => {
+    it('adds new item to the list', async () => {
       render(
         <ItemsColumn name="Test Column" list={new Map()} setList={setList} />,
       );
@@ -39,10 +39,12 @@ describe('Transfer List', () => {
       const form = screen.getByRole('form');
 
       // Simulate typing a new item in the input field
-      fireEvent.change(input, { target: { value: 'New Item' } });
+      // await userEvent.change(input, { target: { value: 'New Item' } });
+
+      await userEvent.type(input, 'New Item');
 
       // Simulate submitting the form
-      fireEvent.submit(form);
+      await fireEvent.submit(form);
       expect(setList).toHaveBeenCalledWith(expect.any(Map)); // Asserting that setList was called with a Map
       expect(setList).toHaveBeenCalledWith(
         expect.objectContaining({ size: 1 }),
@@ -55,7 +57,7 @@ describe('Transfer List', () => {
   });
 
   describe('Transfer actions works correctly', () => {
-    it('clicking at >> should transfer all the item from left to right list', () => {
+    it('clicking at >> should transfer all the item from left to right list', async () => {
       render(<TransferList />);
       const leftColumn = screen.getByTestId('left-items');
       const rightColumn = screen.getByTestId('right-items');
@@ -63,13 +65,13 @@ describe('Transfer List', () => {
       expect(within(rightColumn).queryByText(/html/i)).not.toBeInTheDocument();
 
       const button = screen.getByText(/>>/i);
-      fireEvent.click(button);
+      await userEvent.click(button);
 
       expect(within(rightColumn).getByText(/html/i)).toBeInTheDocument();
       expect(within(leftColumn).queryByText(/html/i)).not.toBeInTheDocument();
     });
 
-    it('clicking at << should transfer all the item from right to left list', () => {
+    it('clicking at << should transfer all the item from right to left list', async () => {
       render(<TransferList />);
       const leftColumn = screen.getByTestId('left-items');
       const rightColumn = screen.getByTestId('right-items');
@@ -77,10 +79,12 @@ describe('Transfer List', () => {
       expect(within(leftColumn).queryByText(/react/i)).not.toBeInTheDocument();
 
       const button = screen.getByText(/<</i);
-      fireEvent.click(button);
+      await userEvent.click(button);
 
       expect(within(leftColumn).getByText(/react/i)).toBeInTheDocument();
       expect(within(rightColumn).queryByText(/react/i)).not.toBeInTheDocument();
     });
+
+    it('clicking at > should transfer all the selected items from left to right list', async () => {});
   });
 });
