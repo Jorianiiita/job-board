@@ -11,7 +11,7 @@ import TreeView from './apps/TreeView';
 import Wordle from './apps/Wordle';
 import AtlassianApp from './atlassian/app';
 // import './coding';
-import './atlassian/coding';
+import './coding/visitedPages';
 
 function App() {
   return <TransferList />;
