@@ -1,22 +1,16 @@
 import './styles.css';
-import React, {
-  ForwardedRef,
-  forwardRef,
-  useEffect,
-  useId,
-  useRef,
-  useState,
-} from 'react';
+import React, { forwardRef, useEffect, useId, useRef, useState } from 'react';
 
 // Checkbox component
 type CheckboxProps = {
   checked: boolean;
-  onChange: React.EventHandler<React.ChangeEvent<HTMLInputElement>>;
+  onChange: React.ChangeEventHandler<HTMLInputElement>;
   label: string;
 };
-const Checkbox = forwardRef(function Checkbox(
-  { checked, onChange, label }: CheckboxProps,
-  ref: ForwardedRef<HTMLInputElement>,
+
+const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Checkbox(
+  { checked, onChange, label },
+  ref,
 ) {
   const id = useId();
   return (
@@ -34,12 +28,13 @@ const Checkbox = forwardRef(function Checkbox(
 });
 
 // ItemsList component
-type ItemsListProp = {
+type ItemsListProps = {
   list: Map<string, boolean>;
   onChange: React.Dispatch<React.SetStateAction<Map<string, boolean>>>;
   name: string;
 };
-function ItemsList({ list, onChange, name }: ItemsListProp) {
+
+function ItemsList({ list, onChange, name }: ItemsListProps) {
   return (
     <div className="items" data-testid={`${name}-items`}>
       <ul>
@@ -118,12 +113,17 @@ function addItemInTheList(list: Map<string, boolean>, item: string) {
 }
 
 // Exported components and functions
-type ItemsColumnProp = {
+type ItemsColumnProps = {
   name: string;
   list: Map<string, boolean>;
   setList: React.Dispatch<React.SetStateAction<Map<string, boolean>>>;
 };
-export const ItemsColumn = ({ name, list, setList }: ItemsColumnProp) => {
+
+export const ItemsColumn: React.FC<ItemsColumnProps> = ({
+  name,
+  list,
+  setList,
+}) => {
   const countOfSelectedItems = Array.from(list).reduce((acc, [key, value]) => {
     if (value) {
       acc++;
@@ -134,12 +134,13 @@ export const ItemsColumn = ({ name, list, setList }: ItemsColumnProp) => {
   const [newItem, setNewItem] = useState('');
 
   useEffect(() => {
-    if (ref.current)
+    if (ref.current) {
       ref.current.indeterminate =
         countOfSelectedItems > 0 && countOfSelectedItems !== list.size;
+    }
   }, [list]);
 
-  const handleAddItem = (e: React.SyntheticEvent<HTMLFormElement>) => {
+  const handleAddItem = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const newItemValue = newItem.trim();
     if (newItemValue === '') {
@@ -169,14 +170,14 @@ export const ItemsColumn = ({ name, list, setList }: ItemsColumnProp) => {
           }}
         />
       </form>
-      <hr></hr>
+      <hr />
       <Checkbox
         ref={ref}
         label={`${countOfSelectedItems} / ${list.size} Selected`}
         checked={list.size > 0 && countOfSelectedItems === list.size}
         onChange={handleSelectAllItems}
       />
-      <hr></hr>
+      <hr />
       <ItemsList list={list} onChange={setList} name={name} />
     </div>
   );
